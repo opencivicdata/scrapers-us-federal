@@ -14,8 +14,27 @@ class UnitedStatesLegislativeScraper(Scraper):
         resp = self.urlopen(url)
         return yaml.safe_load(resp)
 
+    def scrape_current_chambers(self):
+        house = Organization(
+            name="United States House of Representatives",
+            classification='legislature',
+        )
+        house.add_source(CURRENT_LEGISLATORS)
+        self.house = house
+        yield house
+
+        senate = Organization(
+            name="United States Senate",
+            classification='legislature',
+        )
+        senate.add_source(CURRENT_LEGISLATORS)
+        self.senate = senate
+        yield senate
+
     def scrape_current_legislators(self):
         people = self.yamlize(CURRENT_LEGISLATORS)
+        parties = set()
+
         for person in people:
             name = person['name']['official_full']
             who = Person(name=name)
@@ -43,10 +62,14 @@ class UnitedStatesLegislativeScraper(Scraper):
                         start_date=start_date,
                         end_date=end_date,
                         person_id=who._id,
-                        organization_id=make_psuedo_id(
-                            classification="legislature",
-                            chamber=chamber))
+                        organization_id={
+                            "rep": self.house,
+                            "sen": self.senate,
+                        }[type_]._id)
                     yield membership
+
+                if party == "Democrat":
+                    party = "Democratic"
 
                 if party:
                     membership = Membership(
@@ -65,4 +88,5 @@ class UnitedStatesLegislativeScraper(Scraper):
             yield who
 
     def scrape(self):
+        yield from self.scrape_current_chambers()
         yield from self.scrape_current_legislators()
