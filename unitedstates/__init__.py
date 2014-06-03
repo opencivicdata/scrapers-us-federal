@@ -1,5 +1,4 @@
 from pupa.scrape import Jurisdiction
-
 from .legislative import UnitedStatesLegislativeScraper
 
 
