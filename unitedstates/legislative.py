@@ -3,10 +3,6 @@ from pupa.utils import make_psuedo_id
 
 import yaml
 
-CURRENT_LEGISLATORS = ("https://raw.githubusercontent.com/"
-                       "unitedstates/congress-legislators/"
-                       "master/legislators-current.yaml")
-
 
 class UnitedStatesLegislativeScraper(Scraper):
 
@@ -14,7 +10,15 @@ class UnitedStatesLegislativeScraper(Scraper):
         resp = self.urlopen(url)
         return yaml.safe_load(resp)
 
+    def get_url(self, what):
+        return ("https://raw.githubusercontent.com/"
+              + "unitedstates/congress-legislators/master/"
+              + what
+              + ".yaml")
+
     def scrape_current_chambers(self):
+        CURRENT_LEGISLATORS = self.get_url("legislators-current")
+
         house = Organization(
             name="United States House of Representatives",
             classification='legislature',
@@ -32,6 +36,8 @@ class UnitedStatesLegislativeScraper(Scraper):
         yield senate
 
     def scrape_current_legislators(self):
+        CURRENT_LEGISLATORS = self.get_url("legislators-current")
+
         people = self.yamlize(CURRENT_LEGISLATORS)
         parties = set()
 
@@ -83,7 +89,11 @@ class UnitedStatesLegislativeScraper(Scraper):
                     yield membership
 
             for key, value in person.get('id', {}).items():
-                who.add_identifier(str(value), scheme=key)
+                if isinstance(value, list):
+                    for v in value:
+                        who.add_identifier(str(v), scheme=key)
+                else:
+                    who.add_identifier(str(value), scheme=key)
 
             yield who
 
