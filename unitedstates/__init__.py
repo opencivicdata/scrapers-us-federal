@@ -1,9 +1,9 @@
-from pupa.scrape import Jurisdiction
+from pupa.scrape import Jurisdiction, Organization
 from .legislative import UnitedStatesLegislativeScraper
 
 
 class UnitedStates(Jurisdiction):
-    jurisdiction_id = 'ocd-jurisdiction/country:us/government'
+    classification = 'government'
     division_id = 'ocd-division/country:us'
 
     name = 'United States Federal Government'
@@ -19,3 +19,8 @@ class UnitedStates(Jurisdiction):
         "congress": UnitedStatesLegislativeScraper,
         # Executive Scraper here
     }
+
+    def get_organizations(self):
+        legislature = Organization("United States Congress",
+                                   classification='legislature')
+        yield legislature
