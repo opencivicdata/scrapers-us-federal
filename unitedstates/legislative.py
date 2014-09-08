@@ -46,7 +46,7 @@ class UnitedStatesLegislativeScraper(Scraper):
             if name is None:
                 name = "{name[first]} {name[last]}".format(**person)
 
-            who = Person(name=name)
+            who = Person(name=name, birth_date=person['bio']['birthday'])
             who.add_source(url=CURRENT_LEGISLATORS,
                            note="unitedstates project on GitHub")
 
