@@ -42,7 +42,10 @@ class UnitedStatesLegislativeScraper(Scraper):
         parties = set()
 
         for person in people:
-            name = person['name']['official_full']
+            name = person['name'].get('official_full')
+            if name is None:
+                name = "{name[first]} {name[last]}".format(**person)
+
             who = Person(name=name)
             who.add_source(url=CURRENT_LEGISLATORS,
                            note="unitedstates project on GitHub")
