@@ -1,6 +1,7 @@
 from pupa.scrape import Scraper, Person, Membership, Organization
 from pupa.utils import make_psuedo_id
 
+from collections import defaultdict
 import yaml
 
 
@@ -40,15 +41,21 @@ class UnitedStatesLegislativeScraper(Scraper):
 
         people = self.yamlize(CURRENT_LEGISLATORS)
         parties = set()
+        person_cache = defaultdict(lambda: defaultdict(lambda: None))
 
         for person in people:
             name = person['name'].get('official_full')
             if name is None:
                 name = "{name[first]} {name[last]}".format(**person)
 
-            who = Person(name=name, birth_date=person['bio']['birthday'])
-            who.add_source(url=CURRENT_LEGISLATORS,
-                           note="unitedstates project on GitHub")
+            birth_date = person['bio']['birthday']
+
+            who = person_cache[name][birth_date]
+
+            if who is None:
+                who = Person(name=name, birth_date=birth_date)
+                who.add_source(url=CURRENT_LEGISLATORS,
+                               note="unitedstates project on GitHub")
 
             for term in person.get('terms', []):
                 start_date = term['start']
