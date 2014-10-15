@@ -1,5 +1,5 @@
 from pupa.scrape import Scraper, Person, Membership, Organization
-from pupa.utils import make_psuedo_id
+from pupa.utils import make_pseudo_id
 
 from collections import defaultdict
 import yaml
@@ -93,7 +93,7 @@ class UnitedStatesLegislativeScraper(Scraper):
                         start_date=start_date,
                         end_date=end_date,
                         person_id=who._id,
-                        organization_id=make_psuedo_id(
+                        organization_id=make_pseudo_id(
                             classification="party",
                             name=party))
                     yield membership
