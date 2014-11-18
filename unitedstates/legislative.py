@@ -1,4 +1,4 @@
-from pupa.scrape import Scraper, Person, Membership, Organization
+from pupa.scrape import Scraper, Person, Membership, Organization, Post
 from pupa.utils import make_pseudo_id
 
 from collections import defaultdict
@@ -74,9 +74,18 @@ class UnitedStatesLegislativeScraper(Scraper):
                         'sen': 'Senator',}[type_]
 
                 if type_ == "rep" and district is not None:
+                    label = "%s for District %s" % (role, district)
+                    post = Post(organization_id={
+                            "rep": self.house,
+                            "sen": self.senate
+                        }[type_]._id,
+                        label=label, role=role)
+                    yield post
+
                     membership = Membership(
+                        post_id=post._id,
                         role=role,
-                        label="%s for District %s" % (role, district),
+                        label=label,
                         start_date=start_date,
                         end_date=end_date,
                         person_id=who._id,
@@ -87,9 +96,18 @@ class UnitedStatesLegislativeScraper(Scraper):
                     yield membership
 
                 if type_ == "sen":
+                    label = "Senitor for %s" % (state)
+                    post = Post(organization_id={
+                            "rep": self.house,
+                            "sen": self.senate
+                        }[type_]._id,
+                        label=label, role=role)
+                    yield post
+
                     membership = Membership(
+                        post_id=post._id,
                         role=role,
-                        label="Senitor for %s" % (state),
+                        label=label,
                         start_date=start_date,
                         end_date=end_date,
                         person_id=who._id,
