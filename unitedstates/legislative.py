@@ -75,10 +75,16 @@ class UnitedStatesLegislativeScraper(Scraper):
 
                 if type_ == "rep" and district is not None:
                     label = "%s for District %s" % (role, district)
+
+                    division_id = ("ocd-division/country:us/"
+                                   "state:{state}/cd:{district}".format(
+                                       state=state.lower(), district=district))
+
                     post = Post(organization_id={
                             "rep": self.house,
                             "sen": self.senate
                         }[type_]._id,
+                        division_id=division_id,
                         label=label, role=role)
                     yield post
 
@@ -96,11 +102,16 @@ class UnitedStatesLegislativeScraper(Scraper):
                     yield membership
 
                 if type_ == "sen":
+
+                    division_id = ("ocd-division/country:us/state:{state}".format(
+                        state=state.lower()))
+
                     label = "Senitor for %s" % (state)
                     post = Post(organization_id={
                             "rep": self.house,
                             "sen": self.senate
                         }[type_]._id,
+                        division_id=division_id,
                         label=label, role=role)
                     yield post
 
