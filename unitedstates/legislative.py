@@ -73,7 +73,7 @@ class UnitedStatesLegislativeScraper(Scraper):
                 role = {'rep': 'Representative',
                         'sen': 'Senator',}[type_]
 
-                if type_ == "rep" and district:
+                if type_ == "rep" and district is not None:
                     membership = Membership(
                         role=role,
                         label="%s for District %s" % (role, district),
