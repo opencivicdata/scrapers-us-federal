@@ -51,6 +51,7 @@ class UnitedStatesLegislativeScraper(Scraper):
             birth_date = person['bio']['birthday']
 
             who = person_cache[name][birth_date]
+            has_term = False
 
             if who is None:
                 who = Person(name=name, birth_date=birth_date)
@@ -58,6 +59,7 @@ class UnitedStatesLegislativeScraper(Scraper):
                                note="unitedstates project on GitHub")
 
             for term in person.get('terms', []):
+                has_term = True
                 start_date = term['start']
                 end_date = term['end']
                 state = term['state']
@@ -71,10 +73,23 @@ class UnitedStatesLegislativeScraper(Scraper):
                 role = {'rep': 'Representative',
                         'sen': 'Senator',}[type_]
 
-                if district:
+                if type_ == "rep" and district:
                     membership = Membership(
                         role=role,
                         label="%s for District %s" % (role, district),
+                        start_date=start_date,
+                        end_date=end_date,
+                        person_id=who._id,
+                        organization_id={
+                            "rep": self.house,
+                            "sen": self.senate,
+                        }[type_]._id)
+                    yield membership
+
+                if type_ == "sen":
+                    membership = Membership(
+                        role=role,
+                        label="Senitor for %s" % (state),
                         start_date=start_date,
                         end_date=end_date,
                         person_id=who._id,
@@ -105,7 +120,8 @@ class UnitedStatesLegislativeScraper(Scraper):
                 else:
                     who.add_identifier(str(value), scheme=key)
 
-            yield who
+            if has_term:
+                yield who
 
     def scrape(self):
         yield from self.scrape_current_chambers()
