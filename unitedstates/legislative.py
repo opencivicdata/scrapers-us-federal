@@ -41,6 +41,7 @@ class UnitedStatesLegislativeScraper(Scraper):
 
         people = self.yamlize(CURRENT_LEGISLATORS)
         parties = set()
+        posts = {}
         person_cache = defaultdict(lambda: defaultdict(lambda: None))
 
         for person in people:
@@ -74,19 +75,21 @@ class UnitedStatesLegislativeScraper(Scraper):
                         'sen': 'Senator',}[type_]
 
                 if type_ == "rep" and district is not None:
-                    label = "%s for District %s" % (role, district)
+                    label = "%s for District %s in %s" % (role, district, state)
 
                     division_id = ("ocd-division/country:us/"
                                    "state:{state}/cd:{district}".format(
                                        state=state.lower(), district=district))
-
-                    post = Post(organization_id={
-                            "rep": self.house,
-                            "sen": self.senate
-                        }[type_]._id,
-                        division_id=division_id,
-                        label=label, role=role)
-                    yield post
+                    post = posts.get(division_id)
+                    if post is None:
+                        post = Post(organization_id={
+                                "rep": self.house,
+                                "sen": self.senate
+                            }[type_]._id,
+                            division_id=division_id,
+                            label=label, role=role)
+                        posts[division_id] = post
+                        yield post
 
                     membership = Membership(
                         post_id=post._id,
@@ -107,13 +110,17 @@ class UnitedStatesLegislativeScraper(Scraper):
                         state=state.lower()))
 
                     label = "Senitor for %s" % (state)
-                    post = Post(organization_id={
-                            "rep": self.house,
-                            "sen": self.senate
-                        }[type_]._id,
-                        division_id=division_id,
-                        label=label, role=role)
-                    yield post
+
+                    post = posts.get(division_id)
+                    if post is None:
+                        post = Post(organization_id={
+                                "rep": self.house,
+                                "sen": self.senate
+                            }[type_]._id,
+                            division_id=division_id,
+                            label=label, role=role)
+                        posts[division_id] = post
+                        yield post
 
                     membership = Membership(
                         post_id=post._id,
