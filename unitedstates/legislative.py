@@ -77,9 +77,16 @@ class UnitedStatesLegislativeScraper(Scraper):
                 if type_ == "rep" and district is not None:
                     label = "%s for District %s in %s" % (role, district, state)
 
-                    division_id = ("ocd-division/country:us/"
-                                   "state:{state}/cd:{district}".format(
-                                       state=state.lower(), district=district))
+                    if district == 0:
+                        division_id = (
+                            "ocd-division/country:us/state:{state}".format(
+                                state=state.lower()))
+                    else:
+                        division_id = ("ocd-division/country:us/"
+                                       "state:{state}/cd:{district}".format(
+                                           state=state.lower(),
+                                           district=district))
+
                     post = posts.get(division_id)
                     if post is None:
                         post = Post(organization_id={
