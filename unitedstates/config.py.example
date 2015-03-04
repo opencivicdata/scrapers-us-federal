@@ -1,0 +1,5 @@
+class Configuration():
+
+    unitedstates_congress_path = '/Users/crd/Code/sunlight/unitedstates/congress/'
+    unitedstates_data_path = '/Users/crd/Code/sunlight/ocd/unitedstates_data/'
+    unitedstates_virtenv_bin_path = '/Users/crd/.virtualenvs/us-congress/bin/python'
