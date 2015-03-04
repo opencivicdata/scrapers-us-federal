@@ -1,4 +1,5 @@
 unitedstates/config.py
+.idea/*
 _data
 _cache
 *swp
