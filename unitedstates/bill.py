@@ -109,12 +109,13 @@ class UnitedStatesBillScraper(Scraper):
             us_congress_path = os.environ['US_CONGRESS_PATH']
             if not us_congress_path.endswith('/'): us_congress_path += '/'
             us_virtenv_python_bin_path = os.environ['US_VIRTENV_PYTHON_BIN_PATH']
-            command = [us_virtenv_python_bin_path, us_congress_path + 'run', 'bills']
-            process = subprocess.Popen(command, cwd=settings.SCRAPED_DATA_DIR)
-            process.wait()
-            command = [us_virtenv_python_bin_path, us_congress_path + 'run', 'bill_versions']
-            process = subprocess.Popen(command, cwd=settings.SCRAPED_DATA_DIR)
-            process.wait()
+            commands = [
+                [us_virtenv_python_bin_path, us_congress_path + 'run', 'bills'],
+                [us_virtenv_python_bin_path, us_congress_path + 'run', 'bill_versions']
+            ]
+            for cmd in commands:
+                process = subprocess.Popen(cmd, cwd=settings.SCRAPED_DATA_DIR)
+                process.wait()
             return
         except KeyError:
             print('You must set environmental variables for the unitedstates/congress path (US_CONGRESS_PATH)'
