@@ -1,4 +1,4 @@
-unitedstates/config.py
+.env
 .idea/*
 _data
 _cache

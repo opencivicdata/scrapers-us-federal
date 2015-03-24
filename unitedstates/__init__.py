@@ -1,13 +1,10 @@
 from pupa.scrape import Jurisdiction, Organization
 
-# config file, see example file for how to configure
-from .config import Configuration
-
 # scrapers
 from .legislative import UnitedStatesLegislativeScraper
 from .bill import UnitedStatesBillScraper
 
-class UnitedStates(Jurisdiction, Configuration):
+class UnitedStates(Jurisdiction):
     classification = 'government'
     division_id = 'ocd-division/country:us'
 
