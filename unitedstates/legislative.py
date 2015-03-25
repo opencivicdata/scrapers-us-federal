@@ -3,10 +3,9 @@ from pupa.utils import make_pseudo_id
 
 from collections import defaultdict
 import yaml
+import sys
 
-
-class UnitedStatesLegislativeScraper(Scraper):
-
+class UnitedStatesLegislativeScraper(Scraper):       
     def yamlize(self, url):
         resp = self.urlopen(url)
         return yaml.safe_load(resp)
@@ -18,7 +17,7 @@ class UnitedStatesLegislativeScraper(Scraper):
               + ".yaml")
 
     def scrape_current_chambers(self):
-        CURRENT_LEGISLATORS = self.get_url("legislators-current")
+        CURRENT_LEGISLATORS = self.get_url('legislators-current')
 
         house = Organization(
             name="United States House of Representatives",
@@ -36,136 +35,138 @@ class UnitedStatesLegislativeScraper(Scraper):
         self.senate = senate
         yield senate
 
-    def scrape_current_legislators(self):
-        CURRENT_LEGISLATORS = self.get_url("legislators-current")
+    def scrape_current_legislators(self, repos):
+        for repo in repos:
+            CURRENT_LEGISLATORS = self.get_url(repo)
 
-        people = self.yamlize(CURRENT_LEGISLATORS)
-        parties = set()
-        posts = {}
-        person_cache = defaultdict(lambda: defaultdict(lambda: None))
+            people = self.yamlize(CURRENT_LEGISLATORS)
+            parties = set()
+            posts = {}
+            person_cache = defaultdict(lambda: defaultdict(lambda: None))
 
-        for person in people:
-            name = person['name'].get('official_full')
-            if name is None:
-                name = "{name[first]} {name[last]}".format(**person)
+            for person in people:
+                name = person['name'].get('official_full')
+                if name is None:
+                    name = "{name[first]} {name[last]}".format(**person)
 
-            birth_date = person['bio']['birthday']
+                if 'birthday' in person['bio']:
+                    birth_date = person['bio']['birthday']
 
-            who = person_cache[name][birth_date]
-            has_term = False
+                who = person_cache[name][birth_date]
+                has_term = False
 
-            if who is None:
-                who = Person(name=name, birth_date=birth_date)
-                who.add_source(url=CURRENT_LEGISLATORS,
-                               note="unitedstates project on GitHub")
+                if who is None:
+                    who = Person(name=name, birth_date=birth_date)
+                    who.add_source(url=CURRENT_LEGISLATORS,
+                                   note="unitedstates project on GitHub")
 
-            for term in person.get('terms', []):
-                has_term = True
-                start_date = term['start']
-                end_date = term['end']
-                state = term['state']
-                type_ = term['type']
-                district = term.get('district', None)
-                party = term.get('party', None)
+                for term in person.get('terms', []):
+                    has_term = True
+                    start_date = term['start']
+                    end_date = term['end']
+                    state = term['state']
+                    type_ = term['type']
+                    district = term.get('district', None)
+                    party = term.get('party', None)
 
-                chamber = {'rep': 'lower',
-                           'sen': 'upper',}[type_]
+                    chamber = {'rep': 'lower',
+                               'sen': 'upper',}[type_]
 
-                role = {'rep': 'Representative',
-                        'sen': 'Senator',}[type_]
+                    role = {'rep': 'Representative',
+                            'sen': 'Senator',}[type_]
 
-                if type_ == "rep" and district is not None:
-                    label = "%s for District %s in %s" % (role, district, state)
+                    if type_ == "rep" and district is not None:
+                        label = "%s for District %s in %s" % (role, district, state)
 
-                    if district == 0:
-                        division_id = (
-                            "ocd-division/country:us/state:{state}".format(
-                                state=state.lower()))
+                        if district == 0:
+                            division_id = (
+                                "ocd-division/country:us/state:{state}".format(
+                                    state=state.lower()))
+                        else:
+                            division_id = ("ocd-division/country:us/"
+                                           "state:{state}/cd:{district}".format(
+                                               state=state.lower(),
+                                               district=district))
+
+                        post = posts.get(division_id)
+                        if post is None:
+                            post = Post(organization_id={
+                                    "rep": self.house,
+                                    "sen": self.senate
+                                }[type_]._id,
+                                division_id=division_id,
+                                label=label, role=role)
+                            posts[division_id] = post
+                            yield post
+
+                        membership = Membership(
+                            post_id=post._id,
+                            role=role,
+                            label=label,
+                            start_date=start_date,
+                            end_date=end_date,
+                            person_id=who._id,
+                            organization_id={
+                                "rep": self.house,
+                                "sen": self.senate,
+                            }[type_]._id)
+                        yield membership
+
+                    if type_ == "sen":
+
+                        division_id = ("ocd-division/country:us/state:{state}".format(
+                            state=state.lower()))
+
+                        label = "Senitor for %s" % (state)
+
+                        post = posts.get(division_id)
+                        if post is None:
+                            post = Post(organization_id={
+                                    "rep": self.house,
+                                    "sen": self.senate
+                                }[type_]._id,
+                                division_id=division_id,
+                                label=label, role=role)
+                            posts[division_id] = post
+                            yield post
+
+                        membership = Membership(
+                            post_id=post._id,
+                            role=role,
+                            label=label,
+                            start_date=start_date,
+                            end_date=end_date,
+                            person_id=who._id,
+                            organization_id={
+                                "rep": self.house,
+                                "sen": self.senate,
+                            }[type_]._id)
+                        yield membership
+
+                    if party == "Democrat":
+                        party = "Democratic"
+
+                    if party:
+                        membership = Membership(
+                            role='member',
+                            start_date=start_date,
+                            end_date=end_date,
+                            person_id=who._id,
+                            organization_id=make_pseudo_id(
+                                classification="party",
+                                name=party))
+                        yield membership
+
+                for key, value in person.get('id', {}).items():
+                    if isinstance(value, list):
+                        for v in value:
+                            who.add_identifier(str(v), scheme=key)
                     else:
-                        division_id = ("ocd-division/country:us/"
-                                       "state:{state}/cd:{district}".format(
-                                           state=state.lower(),
-                                           district=district))
+                        who.add_identifier(str(value), scheme=key)
 
-                    post = posts.get(division_id)
-                    if post is None:
-                        post = Post(organization_id={
-                                "rep": self.house,
-                                "sen": self.senate
-                            }[type_]._id,
-                            division_id=division_id,
-                            label=label, role=role)
-                        posts[division_id] = post
-                        yield post
-
-                    membership = Membership(
-                        post_id=post._id,
-                        role=role,
-                        label=label,
-                        start_date=start_date,
-                        end_date=end_date,
-                        person_id=who._id,
-                        organization_id={
-                            "rep": self.house,
-                            "sen": self.senate,
-                        }[type_]._id)
-                    yield membership
-
-                if type_ == "sen":
-
-                    division_id = ("ocd-division/country:us/state:{state}".format(
-                        state=state.lower()))
-
-                    label = "Senitor for %s" % (state)
-
-                    post = posts.get(division_id)
-                    if post is None:
-                        post = Post(organization_id={
-                                "rep": self.house,
-                                "sen": self.senate
-                            }[type_]._id,
-                            division_id=division_id,
-                            label=label, role=role)
-                        posts[division_id] = post
-                        yield post
-
-                    membership = Membership(
-                        post_id=post._id,
-                        role=role,
-                        label=label,
-                        start_date=start_date,
-                        end_date=end_date,
-                        person_id=who._id,
-                        organization_id={
-                            "rep": self.house,
-                            "sen": self.senate,
-                        }[type_]._id)
-                    yield membership
-
-                if party == "Democrat":
-                    party = "Democratic"
-
-                if party:
-                    membership = Membership(
-                        role='member',
-                        start_date=start_date,
-                        end_date=end_date,
-                        person_id=who._id,
-                        organization_id=make_pseudo_id(
-                            classification="party",
-                            name=party))
-                    yield membership
-
-            for key, value in person.get('id', {}).items():
-                if isinstance(value, list):
-                    for v in value:
-                        who.add_identifier(str(v), scheme=key)
-                else:
-                    who.add_identifier(str(value), scheme=key)
-
-            if has_term:
-                yield who
+                if has_term:
+                    yield who
 
     def scrape(self):
         yield from self.scrape_current_chambers()
-        yield from self.scrape_current_legislators()
+        yield from self.scrape_current_legislators(['legislators-current','legislators-historical'])
