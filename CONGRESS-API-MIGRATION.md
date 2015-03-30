@@ -10,6 +10,9 @@ This document records how we're translating data from the `@unitedstates` projec
 
 `@unitedstates` Committees map to the Open Civic Data `Organization` object. Committee memberships are represented by `Membership` objects that connect to the `Posts` array on the `Organization` object.
 
+*** At the federal level congress, house, and senate are all organizations.  House, Senate, and joint committees are all going
+to have parent_ids linking to the congress organization. ***
+
 ### OCD Field Mapping 
 
 #### `Committees` to `Organizations`
@@ -22,12 +25,15 @@ url			  | .links
 thomas_id	  | .identifiers (scheme: THOMAS)
 phone		  | .contact_details
 address       | .contact_details
-rss_url:	  | .links
-jurisdiction  | .extras   
+rss_url:	  | .links  
+parent_committee | parent_id
+
 
 #### `Members` to `People` via `Posts` and `Memberships`
 
 The `@unitedstates` project stores _current_ committee memberships in the `committee-membership-current.yml` file. We'll use this to build the OCD `Memberships` that connect `Organizations`' `Posts` to OCD `Person` objects.
+
+### `Members`\' title to OCD `Post` Object.
 
 UnitedStates                | OCD Post
 --------------------------- | ---------------------------
@@ -41,6 +47,8 @@ title 						| label
 							| contact_details
 							| links
 							| extras
+
+
 
 
 UnitedStates                | OCD Membership
@@ -68,21 +76,24 @@ There is no good idea of _time_ in our current store of committees and committee
 
 UnitedStates                | OCD Bill
 --------------------------- | ---------------------------
-bill_id 					| identifier
-bill_type 					| ? classification
-committees hash 			| actions (related_entities field)
-introduced_at				| actions
-congress 					| application logic and/or extras
-enacted_as					| extras
-number						| ? necessary
-official_title				| title
-short_title					| other_titles
-popular_title				| other_titles
-titles 						| other_titles
-status						| ? deduce from actions ?
-status_at					| ? deduce from actions ?
-subjects					| subject
-subjects_top_term			| extras
-
-
-
+bill_id 					  				| identifier
+bill_type 									| classification
+committees hash 						| * Not carried over *
+introduced_at								| actions
+congress 					  				| * application logic and/or extras *
+enacted_as									| extras
+number						  				| other_identifiers
+official_title							| title
+short_title									| * disregard *
+popular_title								| * disregard *
+titles 											| other_titles
+status											| ? deduce from actions ?
+status_at										| ? deduce from actions ?
+subjects										| subject
+subjects_top_term						| extras
+sponsor											| sponsorship with 'sponsor' classificaiton
+cosponsors									| sponships with 'cosponsor' classification
+related_bills								| related_bills
+summary		 									| abstracts
+histories										| * disregard *
+ammendments									| * waiting on OCD field *
