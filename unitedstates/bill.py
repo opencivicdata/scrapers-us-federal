@@ -138,87 +138,76 @@ class UnitedStatesBillScraper(Scraper):
             try:
                 with open(filename) as json_file:
                     json_data = json.load(json_file)
-                    ## Initialize Object
+                    # Initialize Object
                     bill = Bill(self.TYPE_MAP[json_data['bill_type']]['canonical'] + ' ' + json_data['number'],
                                 json_data['congress'],
                                 json_data['official_title'],
                                 chamber=self.TYPE_MAP[json_data['bill_type']]['chamber']
                     )
 
-                    ## Basics
+                    # Basics
                     bill.type = [json_data['bill_type']]
                     bill.subject = json_data['subjects']
-                    bill.add_summary(json_data['summary']['as'], json_data['summary']['text'], json_data['summary']['date'])
+                    bill.add_summary(json_data['summary']['as'],
+                                     json_data['summary']['text'],
+                                     json_data['summary']['date'])
 
-                    ## Common Fields
-                    bill.created_at = json_data['introduced_at']
-                    bill.updated_at = dateutil.parser.parse(json_data['updated_at'])
-                    # bill.sources = needs to get patched into unitedstates/congress
+                    # Common Fields
+                    bill.sources = [{'url': json_data['url'], 'note': 'all'}]
 
-                    ## Other/Related Bills
-                    bill.other_titles = [{'note':t['type'], 'title':t['title']} for t in json_data['titles']]
+                    # Other/Related Bills
+                    bill.other_titles = [{'note': t['type'], 'title': t['title']} for t in json_data['titles']]
                     # change value of relationship_type to 'type' field from json_data when permitted by schema
                     bill.related_bills = [{'session': b['session'], 'name': b['name'], 'relationship_type':'companion'}
                                           for b in json_data['related_bills']]
 
-                    ## Sponsors and Actions
-
                     # add primary sponsor
-                    bill.add_sponsorship_by_identifier(json_data['sponsor']['name'],
-                                                       'person',
-                                                       'person',
-                                                       True,
+                    bill.add_sponsorship_by_identifier(json_data['sponsor']['name'], 'person', 'person', True,
                                                        scheme='thomas_id',
                                                        identifier=json_data['sponsor']['thomas_id'],
-                    )
+                                                       chamber=self.TYPE_MAP[json_data['bill_type']]['chamber'])
 
                     # add cosponsors
                     for cs in json_data['cosponsors']:
-                        bill.add_sponsorship_by_identifier(cs['name'],
-                                                           'person',
-                                                           'person',
-                                                           False,
-                                                           scheme='thomas_id',
-                                                           identifier=cs['thomas_id']
-                        )
+                        bill.add_sponsorship_by_identifier(cs['name'], 'person', 'person', False,
+                                                           scheme='thomas_id', identifier=cs['thomas_id'],
+                                                           chamber=self.TYPE_MAP[json_data['bill_type']]['chamber'])
 
-                    # add actions
+                    # add introduced_at and actions
+                    bill.actions.append({'date': json_data['introduced_at'], 'type': 'introduced',
+                                         'description': 'date of introduction',
+                                         'actor': self.TYPE_MAP[json_data['bill_type']]['chamber'],
+                                         'related_entities': []})
                     for action in json_data['actions']:
-                        bill.actions.append({'date':action['acted_at'],
-                                             'type':[action['type']],
+                        bill.actions.append({'date': action['acted_at'],
+                                             'type': [action['type']],
                                              'description': action['text'],
-                                             'actor': '???', # TODO
-                                             'related_entities': []} # TODO
-                        )
+                                             'actor': self.TYPE_MAP[json_data['bill_type']]['chamber'],
+                                             'related_entities': []
+                                             })
 
                     # add bill versions
                     for version_path in find_files(os.path.join(settings.SCRAPED_DATA_DIR,
-                                                     'data',
-                                                     bill.session,
-                                                     'bills',
-                                                     json_data['bill_type'],
-                                                     json_data['bill_type'] + json_data['number'],
-                                                     'text-versions'), '*\.json'):
+                                                   'data', bill.session, 'bills', json_data['bill_type'],
+                                                   json_data['bill_type'] + json_data['number'],
+                                                   'text-versions'), '*\.json'):
                         try:
                             with open(version_path) as version_file:
                                 version_json_data = json.load(version_file)
-                                for k,v in version_json_data['urls'].iteritems():
-                                    bill.add_version_link(version_json_data['version_code'],)
-
-                                bill.versions = [{'date':version_json_data['issued_on'],
-                                                  'type':version_json_data['version_code'],
-                                                  'name':self.VERSION_MAP[version_json_data['version_code']],
-                                                  'links': [{'mimetype':k, 'url':v}
-                                                            for k,v in version_json_data['urls'].iteritems()]}]
+                                for k, v in version_json_data['urls'].iteritems():
+                                    bill.versions.append({'date': version_json_data['issued_on'],
+                                                          'type': version_json_data['version_code'],
+                                                          'name': self.VERSION_MAP[version_json_data['version_code']],
+                                                          'links': [{'mimetype': k, 'url': v}]})
                         except IOError:
-                            print("Unable to open file with path " + version_path)
+                            print("Unable to open or parse file with path " + version_path)
+                            continue
 
                     yield bill
 
             except IOError:
-                print("Unable to open file with path " + filename)
-
-
+                print("Unable to open or parse file with path " + filename)
+                continue
 
     def scrape(self):
         yield from self.scrape_bills()
