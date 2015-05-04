@@ -96,4 +96,23 @@ cosponsors									| sponships with 'cosponsor' classification
 related_bills								| related_bills
 summary		 									| abstracts
 histories										| * disregard *
-ammendments									| * waiting on OCD field *
+ammendments						| * waiting on OCD field *
+
+
+## /votes
+
+See `@unitedstates` votes data format [here](https://github.com/unitedstates/congress/wiki/votes) and OCD votes data format [here](http://docs.opencivicdata.org/en/latest/data/vote.html).
+
+UnitedStates                | OCD Bill
+--------------------------- | ---------------------------
+vote_id 			| identifier
+congress                     	| session
+chamber                         | chamber (h -> lower, s -> upper, etc)
+date                            | date
+type                            | motion
+category                        | type
+result                          | passed
+source_url                      | sources
+bill                            | bill
+? deduce from votes ?           | vote_counts
+votes                           | roll_call
