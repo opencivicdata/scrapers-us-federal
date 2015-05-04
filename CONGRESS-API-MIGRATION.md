@@ -111,7 +111,7 @@ The specific rules differs between the House and the Senate and both are afforde
 
 ### OCD Field Mapping
 
-UnitedStates                | OCD Bill
+UnitedStates                | OCD Vote
 --------------------------- | ---------------------------
 vote_id 			| identifier
 congress                     	| session
@@ -124,3 +124,69 @@ source_url                      | sources
 bill                            | bill
 ? deduce from votes ?           | vote_counts
 votes                           | roll_call
+
+## /hearings
+
+"Congressional hearings are the principal formal method by which committees collect and analyze information in the early stages of legislative policymaking" -- [Wikipedia](http://en.wikipedia.org/wiki/United_States_congressional_hearing)
+
+### OCD Object Mapping
+
+`@unitedstates` Committee Meetings map to the Open Civic Data `Event` object.
+
+### OCD Field Mapping
+
+UnitedStates                | OCD Event
+--------------------------- | ---------------------------
+guid/house_event_id/congress/house_meeting_type ???				| identifier
+topic                     	| name
+topic                           | description
+occurs_at                       | when
+?				| end
+?                               | status
+room		                | location (name). Get URL/geolocation of rooms?
+committee			| participants (see mapping below)
+committee_names			| participants (see mapping below)
+witnesses                       | agenda (see mapping below)
+bill_ids			| agenda (see mapping below)
+meeting_documents		| media (see mapping below)
+url				| links (see mapping below)
+
+Should we derive the Person models from committee membership? Should the participating committee be only the subcommittee (if applicable) or both the subcommittee and the parent committee?
+
+committee/committee_names | OCD Event-participants
+------------------------- | ---------------------------
+chamber				| chamber
+????				| note
+*default value*			| type = organization ?
+committee/committee_name	| name
+*derived*			| id
+
+Should the organization (if applicable) only be associated with the person or both the person and the agenda?
+
+witnesses		 | OCD Event-agenda
+------------------------ | ---------------------------
+documents			| media 
+first_name, last_name, witness_type, position | related_entitites
+organization			| related_entities 
+
+Leave note field on the agenda empty?
+
+bill_ids		 | OCD Event-agenda
+------------------------ | ---------------------------
+array entries are bill identifiers	| related_entities
+
+This maps fairly nicely.
+
+meeting_documents	 | OCD Event-media
+------------------------ | ---------------------------
+type				| type
+name				| description
+date				| published_on
+urls				| links (mimetype = infer mimetype from url extension, url = url)
+				| offset
+
+What should the note be? The link in the US scrapers are to the committee repository whichh is basically an html representation of the hearing data.
+
+url	 		 | OCD Event-links
+------------------------ | ---------------------------
+url			 | note = Calendar Event??? url=url
