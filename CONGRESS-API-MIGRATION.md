@@ -101,7 +101,15 @@ ammendments						| * waiting on OCD field *
 
 ## /votes
 
-See `@unitedstates` votes data format [here](https://github.com/unitedstates/congress/wiki/votes) and OCD votes data format [here](http://docs.opencivicdata.org/en/latest/data/vote.html).
+Recorded vote in the United States Congress, often called a roll-call vote.
+
+The specific rules differs between the House and the Senate and both are afforded considerable freedom in establishing their own rules under Article One of the United States Constitution. -- See [Wikipedia](http://en.wikipedia.org/wiki/Roll_call) for more information.
+
+### OCD Object Mapping
+
+`@unitedstates` Votes map to the Open Civic Data `Vote` object. It's nearly a one-to-one attribute mapping. See `@unitedstates` votes data format [here](https://github.com/unitedstates/congress/wiki/votes) and OCD votes data format [here](http://docs.opencivicdata.org/en/latest/data/vote.html) for documentation of each.
+
+### OCD Field Mapping
 
 UnitedStates                | OCD Bill
 --------------------------- | ---------------------------
