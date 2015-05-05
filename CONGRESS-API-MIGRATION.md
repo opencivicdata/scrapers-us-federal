@@ -138,14 +138,13 @@ votes                           | roll_call
 UnitedStates                | OCD Event
 --------------------------- | ---------------------------
 guid/house_event_id/congress/house_meeting_type ???				| identifier
-topic                     	| name
+*generate*                     	| name
 topic                           | description
 occurs_at                       | when
-?				| end
-?                               | status
-room		                | location (name). Get URL/geolocation of rooms?
+				| end
+ask paul                        | status
+room		                | location (name)
 committee			| participants (see mapping below)
-committee_names			| participants (see mapping below)
 witnesses                       | agenda (see mapping below)
 bill_ids			| agenda (see mapping below)
 meeting_documents		| media (see mapping below)
@@ -153,12 +152,12 @@ url				| links (see mapping below)
 
 Should we derive the Person models from committee membership? Should the participating committee be only the subcommittee (if applicable) or both the subcommittee and the parent committee?
 
-committee/committee_names | OCD Event-participants
+committe	  	  | OCD Event-participants
 ------------------------- | ---------------------------
 chamber				| chamber
-????				| note
+*derived*			| note
 *default value*			| type = organization ?
-committee/committee_name	| name
+committee 			| name
 *derived*			| id
 
 Should the organization (if applicable) only be associated with the person or both the person and the agenda?
