@@ -3,6 +3,7 @@ from pupa.scrape import Jurisdiction, Organization
 # scrapers
 from .legislative import UnitedStatesLegislativeScraper
 from .bill import UnitedStatesBillScraper
+from .committee import UnitedStatesCommitteeScraper
 
 class UnitedStates(Jurisdiction):
     classification = 'government'
@@ -20,7 +21,7 @@ class UnitedStates(Jurisdiction):
     scrapers = {
         "congress": UnitedStatesLegislativeScraper,
         "bills": UnitedStatesBillScraper,
-        # Executive Scraper here
+        "committees": UnitedStatesCommitteeScraper
     }
 
     def get_organizations(self):
