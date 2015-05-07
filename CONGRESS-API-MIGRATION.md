@@ -189,3 +189,51 @@ What should the note be? The link in the US scrapers are to the committee reposi
 url	 		 | OCD Event-links
 ------------------------ | ---------------------------
 url			 | note = Calendar Event??? url=url
+
+## /floor_updates
+
+Recent real time, to-the-minute updates from the House and Senate floor. House floor updates are sourced from XML at the [House Clerk](http://clerk.house.gov/floorsummary/floor.aspx), and Senate updates from the [Senate Periodical Press Gallery](http://www.periodicalpress.senate.gov/).
+
+### OCD Object Mapping
+
+`House Clerk XML` and `Senate Periodic Press Gallery` map to the Open Civic Data `Event` object.
+
+### OCD Field Mapping
+
+#### House Clerk XML
+
+The House releases XML for floor updates that we will ingest and translate directly.
+
+XML                	    | OCD Event
+--------------------------- | ---------------------------
+*derived from chamber, action_time* 	| name
+"floor_update"		    | classification
+action_time[for-search]	    | start_time
+?? eastern ??		    | timezone
+action_description	            | description
+capitol (get url/coords of chamber) 	| location
+False				| all_day
+				| end_time
+confirmed			| status
+Parse names?? ER?		| participants
+a[rel='bill']			| agenda (type=bill)
+a[rel='vote']			| agenda (type=vote)
+
+#### Senate Periodic Press Gallery
+
+The Senate does not release floor updates in a machine-readable format. We must parse the HTML. You can see a current [scraper](https://github.com/sunlightlabs/congress/blob/master/tasks/floor_senate/floor_senate.rb) on the Congress API. The mapping table below will translate from the Congress API fields as the scraper will be adapted for OCD.
+
+Senate Periodic Press Gallery     | OCD Event
+--------------------------------- | ---------------------------
+*derived from chamber, action time*	| name
+"floor_update"		    | classification
+timestamp		    | start_time	
+?? eastern ??		    | timezone
+update  	            | description
+capitol (get url/coords of chamber) 	| location
+False				| all_day
+				| end_time
+confirmed			| status
+bill_ids			| agenda (type=bill)
+vote_ids			| agenda (type=vote)
+Parse names?? ER?		| participants
