@@ -2,6 +2,29 @@
 
 This document records how we're translating data from the `@unitedstates` project to the OCD spec. For now, we'll have a section per Congress API endpoint.
 
+## /legislators
+
+Article I of the Constitution states, "All legislative Powers herein granted shall be vested in a Congress of the United States, which shall consist of a Senate and House of Representatives." -- [Wikipedia](http://en.wikipedia.org/wiki/United_States_Congress#Overview)
+
+### OCD Object Mapping
+
+The `congress-legislator` repo in the github `@unitedstates` organization contains a YAML file that maps to the OpenCivicData `Person` object. Headshot images come from the `images` repo from the github `@unitedstates` organization.
+
+### OCD Field Mapping 
+
+#### `Congress-Legislator` to `Person`
+
+Congress-Legislator  | OCD Organization
+-------------------- | -------------
+name__official_full 				| name
+*construct github url from biogude* 		  | image
+*from last entry in terms*			| contact_details
+bio__gender					| gender
+bio__birthday					| birth_date
+id					| identifiers
+
+Mappings for Membership can be found below in committee.
+
 ## /committees
 
 "A congressional committee is a legislative sub-organization in the United States Congress that handles a specific duty (rather than the general duties of Congress)." -- [Wikipedia](http://en.wikipedia.org/wiki/United_States_congressional_committee)
